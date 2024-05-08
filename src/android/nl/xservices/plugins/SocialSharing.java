@@ -29,7 +29,6 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -420,33 +419,7 @@ public class SocialSharing extends CordovaPlugin {
       sendIntent.setType("image/*");
     }
 
-    if (image.startsWith("http") || image.startsWith("www/")) {
-      String filename = getFileName(image);
-      localImage = "file://" + dir + "/" + filename.replaceAll("[^a-zA-Z0-9._-]", "");
-      if (image.startsWith("http")) {
-        // filename optimisation taken from https://github.com/EddyVerbruggen/SocialSharing-PhoneGap-Plugin/pull/56
-        URLConnection connection = new URL(image).openConnection();
-        String disposition = connection.getHeaderField("Content-Disposition");
-        if (disposition != null) {
-          final Pattern dispositionPattern = Pattern.compile("filename=([^;]+)");
-          Matcher matcher = dispositionPattern.matcher(disposition);
-          if (matcher.find()) {
-            filename = matcher.group(1).replaceAll("[^a-zA-Z0-9._-]", "");
-            if (filename.length() == 0) {
-              // in this case we can't determine a filetype so some targets (gmail) may not render it correctly
-              filename = "file";
-            }
-            localImage = "file://" + dir + "/" + filename;
-          }
-        }
-        saveFile(getBytes(connection.getInputStream()), dir, filename);
-        // update file type
-        String fileType = getMIMEType(image);
-        sendIntent.setType(fileType);
-      } else {
-        saveFile(getBytes(webView.getContext().getAssets().open(image)), dir, filename);
-      }
-    } else if (image.startsWith("data:")) {
+    if (image.startsWith("data:")) {
       // safeguard for https://code.google.com/p/android/issues/detail?id=7901#c43
       if (!image.contains(";base64,")) {
         sendIntent.setType("text/plain");
